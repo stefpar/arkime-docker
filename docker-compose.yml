@@ -1,0 +1,69 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:3.3.1
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      - bootstrap.memory_lock=true
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - internal-net
+    ports:
+      - "127.0.0.1:9200:9200"
+
+  arkime-viewer:
+    image: ghcr.io/arkime/arkime/arkime:v5-ja4-latest
+    container_name: arkime-viewer
+    depends_on:
+      - opensearch
+    volumes:
+      - ./etc:/opt/arkime/etc
+      - ./raw:/opt/arkime/raw
+    network_mode: "host"
+    command: /opt/arkime/bin/docker.sh viewer -v
+
+  arkime-capture:
+    image: ghcr.io/arkime/arkime/arkime:v5-ja4-latest
+    container_name: arkime-capture
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    depends_on:
+      - opensearch
+    volumes:
+      - ./etc:/opt/arkime/etc
+      - ./raw:/opt/arkime/raw
+    network_mode: "host"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: on-failure
+    command: /opt/arkime/bin/docker.sh capture --update-geo
+
+#  geoipupdate:
+#    container_name: geoipupdate
+#    image: ghcr.io/maxmind/geoipupdate
+#    restart: unless-stopped
+#    environment:
+#      - GEOIPUPDATE_ACCOUNT_ID=000000
+#      - GEOIPUPDATE_LICENSE_KEY=abc123
+#      - 'GEOIPUPDATE_EDITION_IDS=GeoLite2-ASN GeoLite2-Country'
+#      - GEOIPUPDATE_FREQUENCY=72
+#    networks:
+#      - internal-net
+#    volumes:
+#      - ./etc:/usr/share/GeoIP
+
+volumes:
+  opensearch-data:
+
+networks:
+  internal-net:
