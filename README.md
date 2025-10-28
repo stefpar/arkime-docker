@@ -21,7 +21,7 @@ Simple Docker Compose setup to quickly deploy a full Arkime stack for network mo
 Before running, edit `etc/config.ini` and update:
 - `passwordSecret`
 - `interface` (Optional for live capture)
-- Any other settings appropriate for your environment.
+- Any other settings appropriate for your environment. 
 
 ---
 
@@ -83,6 +83,8 @@ You can also upload your own PCAPs via the GUI or by placing them in the raw/ fo
 - The raw/ folder stores captured and imported PCAPs.
 
 - etc/config.ini controls both capture and viewer configuration.
+
+- The etc/arkime.rules file contains a rule that truncates the payload of TLS sessions after 20 packets. Twenty packets are enough to include all the TLS metadata we need.
 
 
 
